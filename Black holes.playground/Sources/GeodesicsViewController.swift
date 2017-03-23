@@ -87,7 +87,6 @@ public class GeodesicsScene: SKScene {
         super.init(size: .zero)
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         self.physicsWorld.gravity = .zero
-        self.physicsWorld.speed = 3
         
         self.backgroundImage = SKSpriteNode(texture: backgroundTexture)
         self.addChild(backgroundImage)
@@ -198,11 +197,19 @@ public class GeodesicsScene: SKScene {
         resizeViewport()
     }
     
-    public func resizeViewport() {
+    public func resizeViewport(ratio: CGFloat? = nil) {
+        let viewportRatio: CGFloat
+        if let ratio = ratio {
+            viewportRatio = ratio
+        } else if self.size != .zero {
+            viewportRatio = self.size.width / self.size.height
+        } else {
+            viewportRatio = 1
+        }
         guard let particle = schwarzschildGeodesic?.particle else { return }
         let viewportRadius = 3 / 2 * CGFloat(sqrt(pow(particle.initialPosition.x, 2) + pow(particle.initialPosition.y, 2))) * pointsPerMeter
         
-        self.size = CGSize(width: viewportRadius * 2, height: viewportRadius * 2)
+        self.size = CGSize(width: 2 * viewportRadius, height: 2 * viewportRadius / viewportRatio)
         
         let backgroundSize = backgroundTexture.size()
         let backgroundScale = max(self.size.width / backgroundSize.width, self.size.height / backgroundSize.height)
@@ -212,9 +219,11 @@ public class GeodesicsScene: SKScene {
     public func startSimulation() {
         schwarzschildField.isEnabled = true
         newtonField.isEnabled = true
+        self.physicsWorld.speed = 5
     }
     
     public func stopSimulation() {
+        self.physicsWorld.speed = 0
         schwarzschildField.isEnabled = false
         newtonField.isEnabled = false
         if case .none = schwarzschildParticleNode.parent {
@@ -237,6 +246,38 @@ public class GeodesicsScene: SKScene {
     }
     
     
+    private var initialVelocityVisualization: SKShapeNode?
+    
+    private func showInitialVelocity() {
+        let initialVelocity = schwarzschildGeodesic.initialVelocity
+        let arrowEndpoint = CGPoint(x: CGFloat(initialVelocity.x) * pointsPerMeter, y: CGFloat(initialVelocity.y) * pointsPerMeter)
+        let arrowAngle: CGFloat = .pi / 4
+        let velocityAngle = CGFloat(atan2(initialVelocity.y, initialVelocity.x))
+        let firstArmAngle: CGFloat = velocityAngle + .pi / 2 + arrowAngle
+        let secondArmAngle: CGFloat = velocityAngle - .pi / 2 - arrowAngle
+        let arrowArmLength: CGFloat = 20
+        let path = CGMutablePath()
+        path.move(to: .zero)
+        path.addLine(to: arrowEndpoint)
+        path.addLine(to: CGPoint(x: arrowEndpoint.x + arrowArmLength * cos(firstArmAngle), y: arrowEndpoint.y + arrowArmLength * sin(firstArmAngle)))
+        path.move(to: arrowEndpoint)
+        path.addLine(to: CGPoint(x: arrowEndpoint.x + arrowArmLength * cos(secondArmAngle), y: arrowEndpoint.y + arrowArmLength * sin(secondArmAngle)))
+        let shape = SKShapeNode(path: path)
+        shape.lineJoin = .round
+        shape.lineCap = .round
+        shape.fillColor = .clear
+        shape.strokeColor = .white
+        shape.lineWidth = 5
+        schwarzschildParticleNode?.addChild(shape)
+        self.initialVelocityVisualization?.removeFromParent()
+        self.initialVelocityVisualization = shape
+    }
+    
+    private func hideInitialVelocity() {
+        initialVelocityVisualization?.removeFromParent()
+    }
+    
+    
     // MARK: User Interaction
     
     private var activeTouch: UITouch?
@@ -253,9 +294,11 @@ public class GeodesicsScene: SKScene {
         let energyMagnitude = Float((location.y + size.height / 2) / size.height)
         setParameters(blackholeMass: schwarzschildGeodesic.source.mass, angularMomentumMagnitude: angularMomentumMagnitude, energyMagnitude: energyMagnitude)
         resetPositions()
+        showInitialVelocity()
     }
     public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         startSimulation()
+        hideInitialVelocity()
     }
     
 }
@@ -276,6 +319,7 @@ public class GeodesicsViewController: UIViewController {
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         simulationView.frame = view.bounds
+        simulationScene.resizeViewport(ratio: view.bounds.width / view.bounds.height)
     }
     
 }
