@@ -1,0 +1,15 @@
+kernel vec4 displacementKernel(sampler image, __table sampler xsrc, __table sampler ysrc, vec2 translation, vec2 lensShift) {
+
+    vec2 d = destCoord();
+
+    vec2 src_coords = samplerTransform(xsrc, d - translation + lensShift);
+    src_coords.y = 1.0 - src_coords.y; // Flip y axis of displacement map
+    vec4 x_px = sample(xsrc, src_coords);
+    vec4 y_px = sample(ysrc, src_coords);
+
+    float x = x_px.g * 255.0 * 100.0 + x_px.r * 255.0;
+    float y = y_px.g * 255.0 * 100.0 + y_px.r * 255.0;
+    vec2 xy = vec2(x, y) + translation;
+
+    return sample(image, samplerTransform(image, xy));
+}
