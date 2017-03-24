@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Terms</key>
+	<dict>
+		<key>black hole</key>
+		<dict>
+			<key>Definition</key>
+			<string>An astrophysical object that is massive enough that objects or light closer to it than the black hole&apos;s Schwarzschild radius will never escape it.</string>
+			<key>FirstUse</key>
+			<dict>
+				<key>PageReference</key>
+				<string>Black hole trajectories</string>
+				<key>Title</key>
+				<string>Black hole trajectories</string>
+			</dict>
+		</dict>
+	</dict>
+</dict>
+</plist>

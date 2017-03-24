@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Version</key>
+	<string>1.0</string>
+	<key>DeploymentTarget</key>
+	<string>ios10.0</string>
+	<key>Name</key>
+	<string>Black holes in general relativity</string>
+	<key>Description</key>
+	<string>Astrophysical phenomena of black holes</string>
+	<key>Pages</key>
+	<array>
+		<string>01.playgroundpage</string>
+		<string>02.playgroundpage</string>
+		<string>03.playgroundpage</string>
+	</array>
+</dict>
+</plist>
