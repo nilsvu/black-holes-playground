@@ -1,8 +1,17 @@
+/*
+ Lens.swift
+ 
+ Author: [Nils Leif Fischer](http://nilsleiffischer.de/)
+*/
+
 import UIKit
 import CoreImage
 
+
 private let linearColorSpace = CGColorSpace(name: CGColorSpace.linearSRGB)!
 
+
+/// Applies displacement map to an image that models the gravitational lensing effect the [RXJ1131-1231](https://www.cfa.harvard.edu/castles/Individual/RXJ1131.html) quasar has on a background light source.
 public class Lens {
     
     private let kernel: CIKernel = CIKernel(string: try! String(contentsOf: #fileLiteral(resourceName: "displacement.cikernel")))!

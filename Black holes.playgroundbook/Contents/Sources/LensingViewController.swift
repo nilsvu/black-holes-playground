@@ -1,17 +1,19 @@
+/*
+ LensingViewController.swift
+ 
+ Author: [Nils Leif Fischer](http://nilsleiffischer.de/)
+*/
+
+import PlaygroundSupport
 import UIKit
 import CoreImage
-import AVFoundation
+//import AVFoundation
 import CoreMotion
+import GLKit
 
 
-let lens = Lens()
-
-let source = CIImage(image: #imageLiteral(resourceName: "milkyway.jpg"))!
-let viewport = CGRect(x: 1000, y: 1000, width: 2000, height: 2000)
-let lensedImage = lens.appliedTo(source, scaledToFill: viewport)
-
-
-public class LensingViewController: UIViewController, UIGestureRecognizerDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
+/// Applies a lensing effect to an image that models the gravitational lensing effect the [RXJ1131-1231](https://www.cfa.harvard.edu/castles/Individual/RXJ1131.html) quasar has on a background light source.
+public class LensingViewController: UIViewController, UIGestureRecognizerDelegate/*, AVCaptureVideoDataOutputSampleBufferDelegate*/ {
     
     // MARK: Interface elements
     
@@ -47,7 +49,12 @@ public class LensingViewController: UIViewController, UIGestureRecognizerDelegat
     
     
     // MARK: Lensing
-    public var source = CIImage(image: #imageLiteral(resourceName: "milkyway.jpg"))!
+    
+    public var source = CIImage(image: #imageLiteral(resourceName: "milkyway.jpg"))! {
+        didSet {
+            render()
+        }
+    }
     public let lens = Lens()
     public var viewportTranslation: CGPoint = .zero {
         didSet {
@@ -76,12 +83,15 @@ public class LensingViewController: UIViewController, UIGestureRecognizerDelegat
                 motionManager.stopDeviceMotionUpdates()
                 motionControlButton.isHidden = false
             case .motion:
-                motionManager.deviceMotionUpdateInterval = 0.015
+                motionManager.deviceMotionUpdateInterval = 1 / 30 // 30Hz refresh rate
                 motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical, to: OperationQueue.main, withHandler: { motion, error in
                     guard let attitude = motion?.attitude else { return }
-                    let horizontalShift = CGFloat((-attitude.roll + .pi) / (2 * .pi) / 2)
-                    let verticalShift = CGFloat(attitude.pitch / .pi)
-                    self.viewportTranslation = CGPoint(x: horizontalShift * self.source.extent.width , y: verticalShift * self.source.extent.height)
+                    let rotationMatrix = attitude.rotationMatrix
+                    let orientationRotation = Float(atan2(-rotationMatrix.m13, sqrt(pow(rotationMatrix.m23, 2) + pow(rotationMatrix.m33, 2))))
+                    let effectiveRotationMatrix = GLKMatrix3Multiply(GLKMatrix3(m: (Float(rotationMatrix.m11), Float(rotationMatrix.m12), Float(rotationMatrix.m13), Float(rotationMatrix.m21), Float(rotationMatrix.m22), Float(rotationMatrix.m23), Float(rotationMatrix.m31), Float(rotationMatrix.m32), Float(rotationMatrix.m33))), GLKMatrix3MakeZRotation(orientationRotation))
+                    let azimuth = atan2(effectiveRotationMatrix.m01, effectiveRotationMatrix.m00)
+                    let pitch = atan2(effectiveRotationMatrix.m12, effectiveRotationMatrix.m22)
+                    self.viewportTranslation = CGPoint(x: CGFloat((-azimuth + .pi) / (2 * .pi)) * self.source.extent.width , y: CGFloat(pitch / .pi) * self.source.extent.height)
                 })
                 motionControlButton.isHidden = true
             }
@@ -110,7 +120,7 @@ public class LensingViewController: UIViewController, UIGestureRecognizerDelegat
     
     public func pan(gestureRecognizer: UIPanGestureRecognizer) {
         let translation = gestureRecognizer.translation(in: view)
-        viewportTranslation = CGPoint(x: viewportTranslationBeforePan.x - translation.x, y: viewportTranslationBeforePan.y + translation.y)
+        self.viewportTranslation = CGPoint(x: viewportTranslationBeforePan.x - translation.x, y: viewportTranslationBeforePan.y + translation.y)
     }
     
     
@@ -141,33 +151,7 @@ public class LensingViewController: UIViewController, UIGestureRecognizerDelegat
     //    }
     //
     //    public func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-    //        guard let filter = Filters[FilterNames[filtersControl.selectedSegmentIndex]] else
-    //        {
-    //            return
-    //        }
-    //
-    //        let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-    //        let cameraImage = CIImage(CVPixelBuffer: pixelBuffer!)
-    //
-    //        filter!.setValue(cameraImage, forKey: kCIInputImageKey)
-    //
-    //        let filteredImage = UIImage(CIImage: filter!.valueForKey(kCIOutputImageKey) as! CIImage!)
-    //
-    //        dispatch_async(dispatch_get_main_queue())
-    //        {
-    //            self.imageView.image = filteredImage
-    //        }
-    //        let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-    //        let cameraImage = CIImage(cvPixelBuffer: pixelBuffer!)
-    //
-    //        let outputImage = UIImage(ciImage: cameraImage)
-    //
-    //        DispatchQueue.main.async {
-    //            self.frameImageView.image = outputImage
-    //            self.debugLabel.text = "async captured!"
-    //
-    //        }
-    //
+    //        print("camera captured!")
     //    }
     
     
@@ -182,7 +166,22 @@ public class LensingViewController: UIViewController, UIGestureRecognizerDelegat
         motionControlButton.frame = CGRect(origin: CGPoint(x: view.bounds.size.width - motionControlButtonSize.width - 20, y: view.bounds.size.height / 2 - motionControlButtonSize.height / 2), size: motionControlButtonSize)
         
         render()
-        // cameraPreviewLayer?.frame = view.bounds
     }
     
+}
+
+
+// MARK: Playground communication
+
+extension LensingViewController: PlaygroundLiveViewMessageHandler {
+    
+    public func receive(_ message: PlaygroundValue) {
+        switch message {
+        case .data(let imageData):
+            guard let source = CIImage(data: imageData) else { return }
+            self.source = source
+        default:
+            return
+        }
+    }
 }

@@ -1,7 +1,14 @@
+/*
+ AudioFrequencyPlayer.swift
+ 
+ Author: [Nils Leif Fischer](http://nilsleiffischer.de/)
+*/
+
 import AVFoundation
 
+/// Simply plays a tone of specific frequency and amplitude.
 public class AudioFrequencyPlayer{
-    // store persistent objects
+
     private var audioEngine = AVAudioEngine()
     private var player = AVAudioPlayerNode()
     private var mixer: AVAudioMixerNode {
@@ -11,7 +18,6 @@ public class AudioFrequencyPlayer{
     private let preferredBufferDuration: TimeInterval = 0.3
     
     public init() {
-        // setup audio engine
         audioEngine.attach(player)
         audioEngine.connect(player, to: mixer, format: player.outputFormat(forBus: 0))
         try? audioEngine.start()

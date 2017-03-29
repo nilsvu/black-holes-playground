@@ -1,10 +1,17 @@
+/*
+ BinarySystemViewController.swift
+ 
+ Author: [Nils Leif Fischer](http://nilsleiffischer.de/)
+*/
+
 import UIKit
 import SpriteKit
-import AVFoundation
-import AudioUnit
+
 
 let scale: CGFloat = 150 // px per meter
 
+
+/// A system of two black holes that inspirals and merges, emitting gravitational waves
 public struct BinarySystem {
     
     public var firstMass: Float = 3
@@ -44,7 +51,7 @@ public struct BinarySystem {
     }
     
     var finalRadiatedEnergy: Float {
-        return 0 // TODO
+        return 0 // insignificant
     }
     var finalBlackhole: BlackHole {
         return BlackHole(mass: totalMass - finalRadiatedEnergy, position: vector_float3(0, 0, 0))
@@ -52,14 +59,14 @@ public struct BinarySystem {
 }
 
 
-
+/// Simulate a binary black hole merger and play the emitted gravitational waves as audio.
 public class BinarySystemScene: SKScene {
     
     var binarySystem: BinarySystem = BinarySystem()
     
     var coalescenceTime: Date?
     /// Real-time duration of simulation until coalescence
-    var duration: TimeInterval = 20
+    var duration: TimeInterval = 10
     /// Timescale of the simulation. Simulates more physical time for a small timescale, thus moving faster at constant simulation duration.
     var timescale: TimeInterval = 0.05
     var initialTime: Float {
@@ -76,6 +83,9 @@ public class BinarySystemScene: SKScene {
     private var backgroundTexture = SKTexture(imageNamed: "milkyway.jpg")
     private var backgroundImage: SKSpriteNode!
     
+    
+    // MARK: Initialization
+    
     override public init(size: CGSize) {
         super.init(size: size)
         
@@ -87,8 +97,10 @@ public class BinarySystemScene: SKScene {
         
         self.firstBlackholeNode = CelestialBodyNode(blackhole: binarySystem.firstBlackhole(initialTime))
         firstBlackholeNode.emitterTargetNode = self
+        firstBlackholeNode?.disableAura()
         self.secondBlackholeNode = CelestialBodyNode(blackhole: binarySystem.secondBlackhole(initialTime))
         secondBlackholeNode.emitterTargetNode = self
+        secondBlackholeNode?.disableAura()
         self.addChild(firstBlackholeNode)
         self.addChild(secondBlackholeNode)
         
@@ -103,6 +115,9 @@ public class BinarySystemScene: SKScene {
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    
+    // MARK: Simulation control
     
     public func startSimulation() {
         self.coalescenceTime = Date().addingTimeInterval(duration)
@@ -121,16 +136,23 @@ public class BinarySystemScene: SKScene {
     }
     
     
+    // MARK: Update loop
+    
     private var audioFrequencyUpdate: TimeInterval?
     
     override public func update(_ currentTime: TimeInterval) {
         super.update(currentTime)
+        
+        // Simulation progresses if a coalescence time is set, else present initial constellation.
         guard let coalescenceTime = self.coalescenceTime else {
             updatePositions(initialTime)
             return
         }
+        
         let t = Float(coalescenceTime.timeIntervalSinceNow / timescale)
+        
         guard t > 0 else {
+            // Merge the black holes after inspiral
             if case .none = finalBlackholeNode.parent {
                 let mergeDuration = 0.1
                 let mergeAction = SKAction.sequence([
@@ -150,11 +172,14 @@ public class BinarySystemScene: SKScene {
             }
             return
         }
+        
+        // Inspiral
         updatePositions(t)
         
+        // Play gravitational wave audio
         if audioFrequencyUpdate == nil || audioFrequencyUpdate! < currentTime - 1 / audioFrequencyUpdateRate {
             let audioFrequency = binarySystem.radiationFrequency(t) / 0.07 * 200
-            audioFrequencyPlayer.play(frequency: audioFrequency)
+            audioFrequencyPlayer.play(frequency: audioFrequency, amplitude: 1)
             audioFrequencyUpdate = currentTime
         }
     }
@@ -204,6 +229,9 @@ public class BinarySystemScene: SKScene {
         startSimulation()
     }
     
+    
+    // MARK: Layout
+    
     public override func didChangeSize(_ oldSize: CGSize) {
         super.didChangeSize(oldSize)
         if let backgroundImage = self.backgroundImage {
@@ -214,6 +242,9 @@ public class BinarySystemScene: SKScene {
     }
     
 }
+
+
+// MARK: View controller wrapper
 
 public class BinarySystemViewController: UIViewController {
     

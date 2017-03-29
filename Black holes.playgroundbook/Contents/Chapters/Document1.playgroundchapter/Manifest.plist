@@ -9,7 +9,7 @@
 	<key>Name</key>
 	<string>Black holes in general relativity</string>
 	<key>Description</key>
-	<string>Astrophysical phenomena of black holes</string>
+	<string>Explore the physics of black holes in interactive simulations</string>
 	<key>Pages</key>
 	<array>
 		<string>01.playgroundpage</string>
