@@ -20,7 +20,9 @@ In this [Swift playground book](http://www.apple.com/swift/playgrounds/) you’l
 1. [Download the Swift Playgrounds App](https://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=908519492&mt=8&ls=1) on your iPad.
 2. [Download the Black holes playground](https://github.com/knly/black-holes-playground/raw/master/dist/Black%20holes.playgroundbook.zip) on your Mac.
 3. [AirDrop](https://support.apple.com/en-us/HT203106) the file from your Mac to your iPad.
+
   ![Airdrop](Images/airdrop.png)
+
 4. On your iPad select _Open with Playgrounds_.
 
 
