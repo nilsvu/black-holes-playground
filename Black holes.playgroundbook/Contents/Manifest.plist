@@ -2,16 +2,24 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>Version</key>
-	<string>1.0</string>
-	<key>ContentVersion</key>
-	<string>1.0</string>
-	<key>Name</key>
-	<string>Black holes</string>
-	<key>Description</key>
-	<string>Explore the physics of black holes in the theory of general relativity</string>
 	<key>ContentIdentifier</key>
 	<string>de.nilsleiffischer.playgrounds.blackholes</string>
+	<key>ContentVersion</key>
+	<string>1.1</string>
+	<key>Version</key>
+	<string>3.0</string>
+	<key>SwiftVersion</key>
+	<string>3.2</string>
+	<key>MinimumSwiftPlaygroundsVersion</key>
+	<string>1.2</string>
+	<key>DevelopmentRegion</key>
+	<string>en_EN</string>
+	<key>Name</key>
+	<string>Black holes</string>
+    <key>Subtitle</key>
+    <string>Play with general relativity 🚀</string>
+	<key>Description</key>
+	<string>Explore the physics of black holes in the theory of general relativity</string>
 	<key>DeploymentTarget</key>
 	<string>ios10.0</string>
 	<key>ImageReference</key>

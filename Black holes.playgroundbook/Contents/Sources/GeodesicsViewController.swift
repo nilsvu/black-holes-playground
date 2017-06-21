@@ -1,6 +1,6 @@
 /*
  GeodesicsViewController.swift
- 
+
  Author: [Nils Leif Fischer](http://nilsleiffischer.de/)
 */
 
@@ -22,7 +22,7 @@ public struct SchwarzschildGeodesic: Geodesic {
     public let particle: Particle
     public let source: BlackHole
     public let fieldBitMask: UInt32 = schwarzschildCategory
-    
+
     public var initialVelocity: vector_float3 {
         let x = particle.initialPosition - source.position
         let r = sqrt(pow(x.x, 2) + pow(x.y, 2))
@@ -31,22 +31,22 @@ public struct SchwarzschildGeodesic: Geodesic {
         let e_phi = vector_float3(-sin(phi), cos(phi), 0)
         return radialVelocity(r) * e_r + r * angularVelocity(r) * e_phi
     }
-    
+
     public func angularVelocity(_ r: Float) -> Float {
         return particle.angularMomentum / pow(r, 2)
     }
-    
+
     public func effectivePotentialSquared(_ r: Float) -> Float {
         return (1 - 2 * source.mass / r) * (1 + pow(particle.angularMomentum / r, 2))
     }
-    
+
     public func radialVelocity(_ r: Float) -> Float {
         let V_sq = effectivePotentialSquared(r)
         let E_sq = pow(particle.energy, 2)
         guard E_sq > V_sq else { return 0 }
         return -sqrt(E_sq - V_sq)
     }
-    
+
     public func effectiveRadialForce(_ r: Float) -> Float {
         let F_M = -source.mass / pow(r, 2)
         return F_M /*+ F_L*/ + 3 * F_M * pow(particle.angularMomentum / r, 2)
@@ -58,46 +58,46 @@ public struct NewtonGeodesic: Geodesic {
     public let particle: Particle
     public let source: BlackHole
     public let fieldBitMask: UInt32 = newtonCategory
-    
+
     public var initialVelocity: vector_float3 {
         let x = particle.initialPosition - source.position
         let r = sqrt(pow(x.x, 2) + pow(x.y, 2))
         let phi: Float = atan2(x.y, x.x)
         return radialVelocity(r) * vector_float3(cos(phi), sin(phi), 0) + r * angularVelocity(r) * vector_float3(-sin(phi), cos(phi), 0)
     }
-    
+
     public func angularVelocity(_ r: Float) -> Float {
         return particle.angularMomentum / pow(r, 2)
     }
-    
+
     public func effectivePotential(_ r: Float) -> Float {
         return pow(particle.angularMomentum / r, 2) / 2 - source.mass / r + 1
     }
-    
+
     public func radialVelocity(_ r: Float) -> Float {
         let E = particle.energy
         let V = effectivePotential(r)
         guard E > V else { return 0 }
         return -sqrt(2 * E - 2 * V)
     }
-    
+
     public func effectiveRadialForce(_ r: Float) -> Float {
         let F_M = -source.mass / pow(r, 2)
         return F_M
     }
-    
+
 }
 
 
 /// Simulate a spherically symmetric source and test particles that trace geodesics in its presence.
 public class GeodesicsScene: SKScene {
-    
+
     public var schwarzschildGeodesic: SchwarzschildGeodesic!
     public var newtonGeodesic: NewtonGeodesic!
     private let simulationSpeedScale: CGFloat = 0.5 // seconds for initial radius crossing
     private var simulationSpeed: CGFloat = 1
     private var objectScale: CGFloat = 1
-    
+
     private var blackholeNode: CelestialBodyNode!
     private var schwarzschildParticleNode: CelestialBodyNode!
     private var newtonParticleNode: CelestialBodyNode!
@@ -106,29 +106,29 @@ public class GeodesicsScene: SKScene {
 
     private var backgroundTexture = SKTexture(imageNamed: "milkyway.jpg")
     private var backgroundImage: SKSpriteNode!
-    
+
     private var trajectoryLabel: SKLabelNode!
     private var legendSchwarzschildLabel: SKLabelNode!
     private var legendNewtonLabel: SKLabelNode!
     private var energyMagnitudeLabel: SKLabelNode!
     private var angularMomentumMagnitudeLabel: SKLabelNode!
-    
-    
+
+
     // MARK: Initialization
-    
+
     override public init() {
         super.init(size: .zero)
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         self.physicsWorld.gravity = .zero
-        
+
         // Background
         self.backgroundImage = SKSpriteNode(texture: backgroundTexture)
         backgroundImage.zPosition = 0
         self.addChild(backgroundImage)
-        
+
         // Labels
         let systemFontName = UIFont.boldSystemFont(ofSize: 18).fontName
-        
+
         self.trajectoryLabel = SKLabelNode(fontNamed: systemFontName)
         trajectoryLabel.fontSize = 76
         trajectoryLabel.fontColor = .white
@@ -144,7 +144,7 @@ public class GeodesicsScene: SKScene {
         legendSchwarzschildLabel.verticalAlignmentMode = .top
         legendSchwarzschildLabel.text = "Schwarzschild"
         self.addChild(legendSchwarzschildLabel)
-        
+
         self.legendNewtonLabel = SKLabelNode(fontNamed: systemFontName)
         legendNewtonLabel.fontSize = 36
         legendNewtonLabel.fontColor = .yellow
@@ -173,7 +173,7 @@ public class GeodesicsScene: SKScene {
         // Initial parameters
         self.setParameters(blackholeMass: 0.2, angularMomentumMagnitude: 0.5, energyMagnitude: 0.25)
         let blackhole = schwarzschildGeodesic.source
-        
+
         // Particle nodes
         self.schwarzschildParticleNode = CelestialBodyNode(geodesic: schwarzschildGeodesic, color: .white, scale: objectScale)
         schwarzschildParticleNode.zPosition = particleZPosition
@@ -185,7 +185,7 @@ public class GeodesicsScene: SKScene {
         newtonParticleNode.emitterTargetNode = self
         newtonParticleNode.traceEffectEmitter?.particleZPosition = traceZPosition
         self.addChild(newtonParticleNode)
-        
+
         // Field nodes
         self.schwarzschildField = SKFieldNode.customField {
             (position: vector_float3, velocity: vector_float3, mass: Float, charge: Float, deltaTime: TimeInterval) in
@@ -199,7 +199,7 @@ public class GeodesicsScene: SKScene {
         schwarzschildField.categoryBitMask = schwarzschildCategory
         schwarzschildField.position = CGPoint(x: CGFloat(blackhole.position.x) * pointsPerMeter, y: CGFloat(blackhole.position.y) * pointsPerMeter)
         self.addChild(schwarzschildField)
-        
+
         self.newtonField = SKFieldNode.customField {
             (position: vector_float3, velocity: vector_float3, mass: Float, charge: Float, deltaTime: TimeInterval) in
             let distance = position - blackhole.position
@@ -212,45 +212,45 @@ public class GeodesicsScene: SKScene {
         newtonField.categoryBitMask = newtonCategory
         newtonField.position = CGPoint(x: CGFloat(blackhole.position.x) * pointsPerMeter, y: CGFloat(blackhole.position.y) * pointsPerMeter)
         self.addChild(newtonField)
-        
+
         // Black hole node
         self.blackholeNode = CelestialBodyNode(blackhole: blackhole)
         blackholeNode.position = .zero
         blackholeNode.zPosition = blackholeZPosition
         blackholeNode.emitterTargetNode = self
         schwarzschildField.addChild(blackholeNode)
-        
+
         resetPositions()
     }
-    
+
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    
+
+
     // MARK: Parameter computation
-    
+
     /// Sets appropriate initial conditions for the test particles given an angular momentum and energy magnitude from 0 to 1, so that the features of the effective gravitational potential are exhibited.
     public func setParameters(blackholeMass: Float, angularMomentumMagnitude: Float, energyMagnitude: Float) {
         let blackhole = BlackHole(mass: blackholeMass, position: vector_float3(0, 0, 0))
-        
+
         let saddleAngularMomentum = sqrt(12) * blackhole.mass
-        
+
         // Select angular momentum
         let angularMomentum = saddleAngularMomentum + angularMomentumMagnitude * 6 * blackhole.mass
-        
+
         let newtonianCircularOrbitRadius: Float = pow(angularMomentum, 2) / blackhole.mass
         let newtonianCircularOrbitEnergy = pow(angularMomentum / newtonianCircularOrbitRadius, 2) / 2 - blackhole.mass / newtonianCircularOrbitRadius + 1
-        
+
         // angularMomentum > saddleAngularMomentum
         let schwarzschildCircularOrbitRadius = pow(angularMomentum, 2) / 2 / blackhole.mass * (1 + sqrt(1 - 12 * pow(blackhole.mass / angularMomentum, 2)))
         let initialRadius = schwarzschildCircularOrbitRadius
-        
+
         let innerOrbitRadius = pow(angularMomentum, 2) / 2 / blackhole.mass * (1 - sqrt(1 - 12 * pow(blackhole.mass / angularMomentum, 2)))
         let schwarzschildCircularOrbitEnergy = sqrt((1 - 2 * blackhole.mass / initialRadius) * (1 + pow(angularMomentum / initialRadius, 2)))
         let innerOrbitEnergy = sqrt((1 - 2 * blackhole.mass / innerOrbitRadius) * (1 + pow(angularMomentum / innerOrbitRadius, 2)))
         let innerOrbitEnergyMagnitude: Float = 0.8
-        
+
         // Select energy
         let energy: Float
         if energyMagnitude <= innerOrbitEnergyMagnitude {
@@ -258,7 +258,7 @@ public class GeodesicsScene: SKScene {
         } else {
             energy = innerOrbitEnergy + pow((energyMagnitude - innerOrbitEnergyMagnitude) / (1 - innerOrbitEnergyMagnitude), 5) * (innerOrbitEnergy - 1)
         }
-        
+
         trajectoryLabel.text = {
             switch energy {
             case 0...(schwarzschildCircularOrbitEnergy + (1 - schwarzschildCircularOrbitEnergy) / 5): return "Near-circular orbit! 🌎"
@@ -268,18 +268,18 @@ public class GeodesicsScene: SKScene {
             default: return "Fall-in! 💥"
             }
         }()
-        
+
         self.objectScale = CGFloat(initialRadius / pow(saddleAngularMomentum, 2) * blackhole.mass)
-        
+
         let particle = Particle(initialPosition: vector_float3(Float(-initialRadius), 0, 0), energy: energy, angularMomentum: angularMomentum)
-        
+
         self.schwarzschildGeodesic = SchwarzschildGeodesic(particle: particle, source: blackhole)
         self.newtonGeodesic = NewtonGeodesic(particle: particle, source: blackhole)
     }
-    
-    
+
+
     // MARK: Simulation control
-    
+
     public func startSimulation() {
         resetPositions()
         let simulationTimescale = (newtonGeodesic.particle.initialPosition - newtonGeodesic.source.position).magnitude / newtonGeodesic.initialVelocity.magnitude
@@ -305,7 +305,7 @@ public class GeodesicsScene: SKScene {
         schwarzschildParticleNode.unpauseTrace()
         newtonParticleNode.unpauseTrace()
     }
-    
+
     public func stopSimulation() {
         self.physicsWorld.speed = 0
         if case .none = schwarzschildParticleNode.parent {
@@ -319,13 +319,13 @@ public class GeodesicsScene: SKScene {
         trajectoryLabel.isHidden = true
         resetPositions()
     }
-    
+
     private func resetPositions() {
         schwarzschildParticleNode.reset(geodesic: schwarzschildGeodesic, scale: objectScale)
         newtonParticleNode.reset(geodesic: newtonGeodesic, scale: objectScale)
         resizeViewport()
     }
-    
+
     public func resizeViewport(ratio: CGFloat? = nil) {
         let viewportRatio: CGFloat
         if let ratio = ratio {
@@ -337,15 +337,15 @@ public class GeodesicsScene: SKScene {
         }
         guard let particle = schwarzschildGeodesic?.particle else { return }
         let viewportRadius = 3 / 2 * CGFloat(sqrt(pow(particle.initialPosition.x, 2) + pow(particle.initialPosition.y, 2))) * pointsPerMeter
-        
+
         self.size = CGSize(width: 2 * viewportRadius * max(1, viewportRatio), height: 2 * viewportRadius * max(1, 1 / viewportRatio))
         energyMagnitudeLabel.setScale(self.objectScale)
         angularMomentumMagnitudeLabel.setScale(self.objectScale)
-        
+
         let backgroundSize = backgroundTexture.size()
         let backgroundScale = max(self.size.width / backgroundSize.width, self.size.height / backgroundSize.height)
         backgroundImage.setScale(backgroundScale)
-        
+
         legendNewtonLabel.setScale(self.objectScale)
         legendSchwarzschildLabel.setScale(self.objectScale)
         let legendOffset = 30 * self.objectScale
@@ -354,9 +354,9 @@ public class GeodesicsScene: SKScene {
         legendNewtonLabel.position = CGPoint(x: self.size.width / 2 - legendOffset, y: self.size.height / 2 - legendOffset - legendVerticalDistance)
     }
 
-    
+
     // MARK: Update loop
-    
+
     override public func update(_ currentTime: TimeInterval) {
         // Merge particles that fall into the black hole
         if case .some = schwarzschildParticleNode.parent {
@@ -367,12 +367,12 @@ public class GeodesicsScene: SKScene {
             }
         }
     }
-    
-    
+
+
     // MARK: User Interaction
-    
+
     private var activeTouch: UITouch?
-    
+
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         stopSimulation()
         activeTouch = touches.first
@@ -406,7 +406,7 @@ public class GeodesicsScene: SKScene {
         startSimulation()
         hideInitialVelocity()
     }
-    
+
     private func showInitialVelocity(geodesic: Geodesic, particleNode: CelestialBodyNode) {
         let initialVelocity = geodesic.initialVelocity
         let arrowUnitLength = objectScale * pointsPerMeter * 5
@@ -422,7 +422,7 @@ public class GeodesicsScene: SKScene {
         path.addLine(to: CGPoint(x: arrowEndpoint.x + arrowArmLength * cos(firstArmAngle), y: arrowEndpoint.y + arrowArmLength * sin(firstArmAngle)))
         path.move(to: arrowEndpoint)
         path.addLine(to: CGPoint(x: arrowEndpoint.x + arrowArmLength * cos(secondArmAngle), y: arrowEndpoint.y + arrowArmLength * sin(secondArmAngle)))
-        
+
         if let existingVelocityVisualization = particleNode.childNode(withName: "velocityVisualization") as? SKShapeNode {
             existingVelocityVisualization.path = path
         } else {
@@ -440,7 +440,7 @@ public class GeodesicsScene: SKScene {
         }
         (particleNode.childNode(withName: "velocityVisualization") as? SKShapeNode)?.lineWidth = 4 * objectScale
     }
-    
+
     private func hideInitialVelocity() {
         schwarzschildParticleNode?.childNode(withName: "velocityVisualization")?.removeFromParent()
         newtonParticleNode?.childNode(withName: "velocityVisualization")?.removeFromParent()
@@ -452,10 +452,10 @@ public class GeodesicsScene: SKScene {
 // MARK: View controller wrapper
 
 public class GeodesicsViewController: UIViewController {
-    
+
     private let simulationView = SKView(frame: .zero)
     private let simulationScene = GeodesicsScene()
-    
+
     override public func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(simulationView)
@@ -463,11 +463,11 @@ public class GeodesicsViewController: UIViewController {
         simulationView.presentScene(simulationScene)
         simulationScene.startSimulation()
     }
-    
+
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         simulationView.frame = view.bounds
         simulationScene.resizeViewport(ratio: view.bounds.width / view.bounds.height)
     }
-    
+
 }
