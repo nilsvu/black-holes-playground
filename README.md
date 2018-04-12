@@ -18,7 +18,7 @@ In this [Swift playground book](http://www.apple.com/swift/playgrounds/) you’l
 ## Installation
 
 1. [Download the Swift Playgrounds App](https://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=908519492&mt=8&ls=1) on your iPad.
-2. [Download the Black holes playground](https://github.com/knly/black-holes-playground/raw/master/dist/Black%20holes.playgroundbook.zip) on your iPad or Mac:
+2. [Download the Black holes playground](https://github.com/nilsleiffischer/black-holes-playground/raw/master/dist/Black%20holes.playgroundbook.zip) on your iPad or Mac:
 
   - **On your iPad:** Select _Open with "Playgrounds"_.
 
@@ -33,6 +33,6 @@ In this [Swift playground book](http://www.apple.com/swift/playgrounds/) you’l
 
 I created this Swift playground book as part of my application for the Apple WWDC 2017 scholarship. For all three simulations I modelled the physics of general relativity in Swift data structures and used the SpriteKit and UIKit frameworks of the iOS platform to visualise the dynamics on screen. To make the educational material engaging for the reader, I employ features of the iOS device such as touch input, motion control and audio feedback that encourage exploration of the scientific phenomena.
 
-- Author: [Nils Leif Fischer](http://nilsleiffischer.de)
+- Author: [Nils Leif Fischer](https://nilsleiffischer.de)
 
 Copyright (c) 2017 Nils Leif Fischer
