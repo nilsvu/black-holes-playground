@@ -18,7 +18,13 @@ In this [Swift playground book](http://www.apple.com/swift/playgrounds/) you’l
 ## Installation
 
 1. [Download the Swift Playgrounds App](https://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=908519492&mt=8&ls=1) on your iPad.
-2. [Download the Black holes playground](https://github.com/nilsleiffischer/black-holes-playground/raw/master/dist/Black%20holes.playgroundbook.zip) on your iPad or Mac:
+2. [Add the _Play with Gravity_ feed to the Swift Playgrounds App](https://developer.apple.com/ul/sp0?url=https://nilsleiffischer.de/relativity-playgrounds-feed/feed.json) and load the _Black holes_ playground.
+
+**Alternatively**, this is the URL you can manually add to the Swift Playgrounds App to subscribe to the _Play with Gravity_ feed:
+
+- _Play with Gravity_ feed URL: https://nilsleiffischer.de/relativity-playgrounds-feed/feed.json
+
+You can also manually  [download the _Black holes_ playground](https://github.com/nilsleiffischer/black-holes-playground/raw/master/dist/Black%20holes.playgroundbook.zip) on your iPad or Mac:
 
   - **On your iPad:** Select _Open with "Playgrounds"_.
 
@@ -27,7 +33,6 @@ In this [Swift playground book](http://www.apple.com/swift/playgrounds/) you’l
   - Or **on your Mac:** [AirDrop](https://support.apple.com/en-us/HT203106) the file to your iPad and select _Open with "Playgrounds"_.
 
     ![AirDrop](Images/airdrop.png)
-
 
 ## About this project
 
